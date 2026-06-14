@@ -48,7 +48,7 @@ To run the container:
 docker run -d \
   --name sync-abs-to-book-orbit \
   -v /path/to/your/audiobooks:/media \
-  ghcr.io/<your-github-username>/sync-abs-to-book-orbit:latest
+  ghcr.io/joshknutson/sync-abs-to-book-orbit:latest
 ```
 
 ### Custom Mount Paths
@@ -60,7 +60,7 @@ docker run -d \
   --name sync-abs-to-book-orbit \
   -v /path/to/your/audiobooks:/my-books \
   -e MEDIA_ROOT=/my-books \
-  ghcr.io/<your-github-username>/sync-abs-to-book-orbit:latest
+  ghcr.io/joshknutson/sync-abs-to-book-orbit:latest
 ```
 
 ---
