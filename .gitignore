@@ -1,0 +1,23 @@
+# IDE / Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Operating System Files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Testing & Temp Files
+*~
+*.log
+/nonexistent_directory/
+/nonexistent_env_dir/
+/nonexistent_media_dir/
