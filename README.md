@@ -14,22 +14,27 @@ A parallelized PowerShell script to scan your audiobook media files, locate Audi
 
 | Environment Variable | Description |
 | :--- | :--- |
-| `MEDIA_ROOT` | Configure the scanning target path. |
+| `MEDIA_ROOT` | Configure the scanning target paths. Supports a single path or a comma-separated list of paths (e.g. `/media/books,/media/audiobooks`). |
+| `CRON` | Optional. A 5-field cron expression (e.g. `*/30 * * * *` for every 30 mins) to enable scheduled background execution inside the container. If omitted, the container runs in one-shot mode and exits. |
 | (Default value) | Defaults to `/media` (standard path in the Docker container). |
 
 ---
 
 ## Manual Execution (PowerShell 7+)
 
-Run the script manually using `pwsh`:
+Run the script manually using `pwsh`. You can pass single or multiple directories to scan:
 
 ```powershell
+# Single directory
 pwsh -File Sync-AbsToBookOrbit.ps1 -MediaRoot "C:\path\to\your\audiobooks"
+
+# Multiple directories (separated by commas or passed as an array)
+pwsh -File Sync-AbsToBookOrbit.ps1 -MediaRoot "C:\path\to\books", "D:\path\to\audiobooks"
 ```
 
 ### Script Parameters
 
-- `-MediaRoot` *(string)*: Specify the directory path to scan. Overrides environment variables.
+- `-MediaRoot` *(string[])*: Specify one or more directory paths to scan. Overrides environment variables. Supports comma-separated strings.
 - `-Force` *(switch)*: Force regeneration of all `metadata.opf` files regardless of timestamps or file existence.
 
 ---
@@ -46,38 +51,53 @@ To run the container:
 
 ```bash
 docker run -d \
-  --name sync-abs-to-book-orbit \
+  --name sync-abstobookorbit \
   -v /path/to/your/audiobooks:/media \
-  ghcr.io/joshknutson/sync-abs-to-book-orbit:latest
+  ghcr.io/joshknutson/sync-abstobookorbit:latest
 ```
 
-### Custom Mount Paths
+### Custom Mount Paths & Multiple Volumes
 
-If you mount your media library somewhere other than `/media` in the container, pass the path via `MEDIA_ROOT`:
+If you mount multiple libraries or use custom mount paths, map each volume and list them in `MEDIA_ROOT` separated by a comma:
 
 ```bash
 docker run -d \
-  --name sync-abs-to-book-orbit \
-  -v /path/to/your/audiobooks:/my-books \
-  -e MEDIA_ROOT=/my-books \
-  ghcr.io/joshknutson/sync-abs-to-book-orbit:latest
+  --name sync-abstobookorbit \
+  -v /path/to/books:/books \
+  -v /path/to/audiobooks:/audiobooks \
+  -e MEDIA_ROOT=/books,/audiobooks \
+  ghcr.io/joshknutson/sync-abstobookorbit:latest
+```
+
+### Cron Scheduling
+
+To keep the container running and scan automatically on a schedule, pass a `CRON` expression:
+
+```bash
+docker run -d \
+  --name sync-abstobookorbit \
+  -v /path/to/audiobooks:/media \
+  -e CRON="0 0 * * *" \
+  ghcr.io/joshknutson/sync-abstobookorbit:latest
 ```
 
 ### Docker Compose
 
-Alternatively, you can integrate this into a `docker-compose.yml` stack:
+Alternatively, you can integrate this into a `docker-compose.yml` stack. Here is a configuration using multiple volumes and scheduled execution every 30 minutes:
 
 ```yaml
 version: '3.8'
 
 services:
-  sync-abs-to-book-orbit:
-    image: ghcr.io/joshknutson/sync-abs-to-book-orbit:latest
-    container_name: sync-abs-to-book-orbit
+  sync-abstobookorbit:
+    image: ghcr.io/joshknutson/sync-abstobookorbit:latest
+    container_name: sync-abstobookorbit
     volumes:
-      - /path/to/your/audiobooks:/media
+      - /path/to/books:/media/books
+      - /path/to/audiobooks:/media/audiobooks
     environment:
-      - MEDIA_ROOT=/media
+      - MEDIA_ROOT=/media/books,/media/audiobooks
+      - CRON=*/30 * * * *
     restart: unless-stopped
 ```
 

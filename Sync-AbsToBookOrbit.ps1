@@ -4,26 +4,48 @@
 [CmdletBinding()]
 param (
     [Parameter(Mandatory = $false)]
-    [string]$MediaRoot = ($env:MEDIA_ROOT ?? "/media"),
+    [string[]]$MediaRoot = @(),
     [Parameter(Mandatory = $false)]
     [switch]$Force
 )
 
-if ([string]::IsNullOrWhiteSpace($MediaRoot)) {
-    $MediaRoot = "/media"
+# Parse scan paths from parameters or fallback to env variable, then to /media
+$PathsToScan = @()
+if ($MediaRoot -and $MediaRoot.Count -gt 0) {
+    foreach ($Entry in $MediaRoot) {
+        if ($Entry) {
+            $PathsToScan += ($Entry -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" })
+        }
+    }
+} elseif ($env:MEDIA_ROOT) {
+    $PathsToScan = ($env:MEDIA_ROOT -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" })
+}
+
+if ($PathsToScan.Count -eq 0) {
+    $PathsToScan = @("/media")
 }
 
 Write-Host "========== SYNC INITIALIZED ==========" -ForegroundColor Cyan
-Write-Host "Scanning directory: $MediaRoot" -ForegroundColor Gray
 
-if (-not (Test-Path -LiteralPath $MediaRoot)) {
-    Write-Warning "The path '$MediaRoot' does not exist or is not accessible."
+$AbsJsonFiles = @()
+foreach ($Path in $PathsToScan) {
+    Write-Host "Scanning directory: $Path" -ForegroundColor Gray
+    if (-not (Test-Path -LiteralPath $Path)) {
+        Write-Warning "The path '$Path' does not exist or is not accessible."
+        continue
+    }
+
+    $FoundFiles = Get-ChildItem -LiteralPath $Path -Filter "metadata.json" -Recurse -File -ErrorAction SilentlyContinue
+    if ($FoundFiles) {
+        $AbsJsonFiles += $FoundFiles
+    }
+}
+
+if ($AbsJsonFiles.Count -eq 0) {
+    Write-Host "No metadata.json files found to process." -ForegroundColor Yellow
     Write-Host "========== COMPLETE ==========" -ForegroundColor Cyan
     return
 }
-
-# Find all metadata files
-$AbsJsonFiles = Get-ChildItem -LiteralPath $MediaRoot -Filter "metadata.json" -Recurse -File -ErrorAction SilentlyContinue
 
 # Process in parallel with a maximum throttle of 3 threads
 $AbsJsonFiles | ForEach-Object -Parallel {
