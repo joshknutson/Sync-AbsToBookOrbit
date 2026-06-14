@@ -103,6 +103,18 @@ services:
 
 ---
 
+## Running Tests
+
+An integration test script is included to verify the XML parsing, language mapping, series formatting, and delta detection logic.
+
+To run the integration tests locally, execute:
+
+```powershell
+pwsh -File test-sync.ps1
+```
+
+---
+
 ## GitHub Actions Continuous Deployment
 
 The workflow file [.github/workflows/docker-publish.yml](.github/workflows/docker-publish.yml) automates:
@@ -113,3 +125,4 @@ The workflow file [.github/workflows/docker-publish.yml](.github/workflows/docke
    - Git branch name
    - Semantic versions (e.g., `v1.0.0`, `v1.0`, `v1` if a git tag is pushed)
    - Commit SHA
+

@@ -24,6 +24,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Run Integration Tests
+        shell: pwsh
+        run: ./test-sync.ps1
+
       - name: Log in to the Container registry
         uses: docker/login-action@v3
         with:

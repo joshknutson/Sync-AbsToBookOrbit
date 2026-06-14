@@ -47,6 +47,9 @@ if ($AbsJsonFiles.Count -eq 0) {
     return
 }
 
+# Determine if regeneration should be forced (from command parameter or environment variable)
+$ForceRegen = $Force -or ($env:FORCE -and ($env:FORCE -eq "true" -or $env:FORCE -eq "1" -or $env:FORCE -eq "yes"))
+
 # Process in parallel with a maximum throttle of 3 threads
 $AbsJsonFiles | ForEach-Object -Parallel {
     $JsonFile = $_
@@ -54,7 +57,7 @@ $AbsJsonFiles | ForEach-Object -Parallel {
     $OpfPath = Join-Path $ItemDir "metadata.opf"
 
     # Delta/Force logic - check if target exists or is older than the source metadata file
-    $NeedsUpdate = $using:Force -or `
+    $NeedsUpdate = $using:ForceRegen -or `
                    (-not (Test-Path -LiteralPath $OpfPath)) -or `
                    ((Get-Item -LiteralPath $OpfPath).LastWriteTime -lt $JsonFile.LastWriteTime)
 
