@@ -63,6 +63,24 @@ docker run -d \
   ghcr.io/joshknutson/sync-abs-to-book-orbit:latest
 ```
 
+### Docker Compose
+
+Alternatively, you can integrate this into a `docker-compose.yml` stack:
+
+```yaml
+version: '3.8'
+
+services:
+  sync-abs-to-book-orbit:
+    image: ghcr.io/joshknutson/sync-abs-to-book-orbit:latest
+    container_name: sync-abs-to-book-orbit
+    volumes:
+      - /path/to/your/audiobooks:/media
+    environment:
+      - MEDIA_ROOT=/media
+    restart: unless-stopped
+```
+
 ---
 
 ## GitHub Actions Continuous Deployment
