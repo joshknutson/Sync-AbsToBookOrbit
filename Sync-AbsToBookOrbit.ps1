@@ -216,7 +216,13 @@ $AbsJsonFiles | ForEach-Object -Parallel {
             foreach ($Sub in $MetadataObj.Subjects) {
                 if ($Sub) { Add-Node $Metadata "dc:subject" $Sub | Out-Null }
             }
-            if ($MetadataObj.Explicit) { Add-Node $Metadata "dc:subject" "Explicit" | Out-Null }
+            if ($MetadataObj.Explicit) {
+                Add-Node $Metadata "dc:subject" "Explicit" | Out-Null
+
+                $ContentRating = Add-Node $Metadata "meta" $null
+                $ContentRating.SetAttribute("property", "schema:contentRating")
+                $ContentRating.InnerText = "Adults Only"
+            }
 
             # Add Calibre Series tags
             if ($MetadataObj.Series) {
